@@ -35,4 +35,5 @@ with open("results_opava.csv", mode="w") as new_csv:
     header = dict1.keys()
     writer = csv.DictWriter(new_csv, dialect="excel-tab", fieldnames=header)
     writer.writeheader()
+    
 
