@@ -25,16 +25,19 @@ for elements in cell:
     chart.append(elements.text)
 list_codes = chart[0::3] 
 list_towns = chart[1::3]
-town_codes = list_codes[:-1:]
-town_names = list_towns[:-1:]
 
+town_codes = list_codes[:-1:] # Seznam kódů obcí
+town_names = list_towns[:-1:] # Seznam názvů obcí
+list_of_voters = list() # Seznam voličů 
+list_of_envelopes = list() # Seznam vydaných obálek
+list_of_valid_votes = list() # Seznam platných hlasů
+list_of_parties = list() # Seznam politických stran
+list_of_parties_votes = list() # Seznam platných hlasů pro každou pol. stranu
 
-list_of_voters = list()
-list_of_envelopes = list()
-list_of_valid_votes = list()
 for code in town_codes:   
     town_url = f"https://www.volby.cz/pls/ps2017nss/ps311?xjazyk=CZ&xkraj=14&xobec={code}&xvyber=8105"
     soup2 = bs(requests.get(town_url).text, "html.parser")  
+
     voters = soup2.find_all("td", {"headers": "sa2"}) # Voliči v seznamu
     for votes in voters:
         list_of_voters.append(votes.text)
@@ -47,20 +50,31 @@ for code in town_codes:
     for votes in valid_votes:
         list_of_valid_votes.append(votes.text)
 
-csv_chart = {
-    "Kód obce": town_codes,
-    "Název obce": town_names,
-    "Voliči v seznamu": list_of_voters,
-    "Vydané obálky": list_of_envelopes,
-    "Platné hlasy": list_of_valid_votes, 
-}
+    parties_votes1 = soup2.find_all("td", {"headers": "t1sa2 t1sb3"}) # Platné hlasy pro kažou pol. stranu 1
+    parties_votes2 = soup2.find_all("td", {"headers": "t2sa2 t2sb3"}) # Platné hlasy pro kažou pol. stranu 2
+    for votes in parties_votes1:
+        list_of_parties_votes.append(votes.text)
+    for votes in parties_votes2:
+        list_of_parties_votes.append(votes.text)
 
+parties_url = "https://www.volby.cz/pls/ps2017nss/ps311?xjazyk=CZ&xkraj=14"
+soup3 = bs(requests.get(parties_url).text, "html.parser")
+parties1 = soup3.find_all("td", {"headers": "t1sa1 t1sb2"}) # Politické strany 1 
+parties2 = soup3.find_all("td", {"headers": "t2sa1 t2sb2"}) # Politické strany 2
+for party in parties1:
+    list_of_parties.append(party.text)
+for party in parties2:
+    list_of_parties.append(party.text)
 
+print(len(list_of_parties))       
 
 # CSV zápis
-# with open("results_opava.csv", mode="w") as new_file:
-    # writer = csv.DictWriter(new_file, delimiter="\n")
+with open("results_opava.csv", mode="w") as new_file:
+    header = ["Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné hlasy"]
+    writer = csv.DictWriter(new_file, delimiter=";", fieldnames=header) 
+    writer.writeheader()
     
+     
 
 
 
