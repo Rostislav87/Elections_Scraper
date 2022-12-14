@@ -6,6 +6,7 @@ email: rosta.rabiec@icloud.com
 discord: Rostislav R.#9305
 """
 
+import sys
 import requests
 from bs4 import BeautifulSoup as bs
 import csv
@@ -31,8 +32,6 @@ town_names = list_towns[:-1:] # Seznam názvů obcí
 list_of_voters = list() # Seznam voličů 
 list_of_envelopes = list() # Seznam vydaných obálek
 list_of_valid_votes = list() # Seznam platných hlasů
-list_of_parties = list() # Seznam politických stran
-list_of_parties_votes = list() # Seznam platných hlasů pro každou pol. stranu
 
 for code in town_codes:   
     town_url = f"https://www.volby.cz/pls/ps2017nss/ps311?xjazyk=CZ&xkraj=14&xobec={code}&xvyber=8105"
@@ -50,31 +49,31 @@ for code in town_codes:
     for votes in valid_votes:
         list_of_valid_votes.append(votes.text)
 
+
     parties_votes1 = soup2.find_all("td", {"headers": "t1sa2 t1sb3"}) # Platné hlasy pro kažou pol. stranu 1
     parties_votes2 = soup2.find_all("td", {"headers": "t2sa2 t2sb3"}) # Platné hlasy pro kažou pol. stranu 2
-    for votes in parties_votes1:
-        list_of_parties_votes.append(votes.text)
-    for votes in parties_votes2:
-        list_of_parties_votes.append(votes.text)
+    
+       
 
+# CSV zápis
 parties_url = "https://www.volby.cz/pls/ps2017nss/ps311?xjazyk=CZ&xkraj=14"
 soup3 = bs(requests.get(parties_url).text, "html.parser")
 parties1 = soup3.find_all("td", {"headers": "t1sa1 t1sb2"}) # Politické strany 1 
 parties2 = soup3.find_all("td", {"headers": "t2sa1 t2sb2"}) # Politické strany 2
+
+header = ["Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné hlasy"]
 for party in parties1:
-    list_of_parties.append(party.text)
+    header.append(party.text)
 for party in parties2:
-    list_of_parties.append(party.text)
+    header.append(party.text)
 
-print(len(list_of_parties))       
+rows = zip(town_codes, town_names, list_of_voters, list_of_envelopes, list_of_valid_votes)
 
-# CSV zápis
-with open("results_opava.csv", mode="w") as new_file:
-    header = ["Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné hlasy"]
-    writer = csv.DictWriter(new_file, delimiter=";", fieldnames=header) 
-    writer.writeheader()
-    
-     
+# with open("results_opava.csv", mode="w", newline="") as new_file:
+#     writer = csv.writer(new_file, delimiter=";") 
+#     writer.writerow(header)
+#     for row in rows:
+#         writer.writerow(row)
 
 
 
