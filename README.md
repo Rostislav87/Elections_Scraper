@@ -1,1 +1,1 @@
-Under construction
+Elections Scraper - projekt č. 3
