@@ -11,14 +11,19 @@ import requests
 from bs4 import BeautifulSoup as bs
 import csv
 
-# 1. argument: html = https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=14&xnumnuts=8105 - okres Opava
-# 2. arguement: results_opava.csv
-# Ve výstupu (soubor .csv) každý řádek obsahuje informace pro konkrétní obec. Tedy podobu:
-# kód obce, název obce, voliči v seznamu, vydané obálky, platné hlasy, kandidující strany
+if len(sys.argv) != 3:
+    print("Zadej skript, odkaz a csv soubor pro spuštění programu.")
+    sys.exit()
+elif "https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=14&xnumnuts=8105" not in sys.argv[1]:
+    print("Zadal jsi špatný odkaz.")
+    sys.exit()
+elif ".csv" not in sys.argv[2]:
+    print("Výstupní soubor musí být ve formátu .csv")
+    sys.exit()
+else:
+    print(f"Spouštím skript {sys.argv[0]}\nStahuji data z {sys.argv[1]}")
 
-print("Stahuji data...")
-html = "https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=14&xnumnuts=8105" 
-soup = bs(requests.get(html).text, "html.parser")
+soup = bs(requests.get(sys.argv[1]).text, "html.parser")
 cell = soup.find_all("td")
 
 chart = list()
@@ -79,9 +84,11 @@ for key, item in zip(parties, list_of_votes_sorted_by_parties):
 dict1.update(dict2)
 
 print("Zapisuji data...")
-with open("results_opava.csv", mode="w", newline="") as new_file:
+  
+file = sys.argv[2] # výstupní soubor.csv 
+with open(file, mode="w", newline="") as new_file:
     writer = csv.writer(new_file, delimiter=";")    
     writer.writerow(dict1.keys())
     writer.writerows(zip(*dict1.values()))
 
-print("Hotovo.")
+print(f"Hotovo. Soubor {sys.argv[2]} byl vytvořen.")
